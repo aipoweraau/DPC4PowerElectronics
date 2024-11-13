@@ -14,6 +14,7 @@ In this study, we apply the DPC algorithm to a **Voltage Source Converter (VSC)*
 
 # System Diagram
 The diagram below illustrates the workflow of the DPC training process and provides a system overview:
+![System Architecture](images/workflow.png)
 
 
 
