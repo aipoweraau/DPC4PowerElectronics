@@ -1,23 +1,24 @@
-- [x] **Single Prediction Horizon**
-  - [x] Implement DPC training with a single prediction horizon
+To-Do List
 
-- [ ] **Multi-Prediction Horizon**
-  - [ ] Implement DPC training with multiple prediction horizons
-  - [ ] Comparative analysis of single vs. multiple prediction horizons:
-    - [ ] Compare training time
-    - [ ] Compare training sample requirements
-    - [ ] Assess robustness across horizons
-    - [ ] Evaluate the impact of hidden layer and neuron configurations on training performance
+1. Single Prediction Horizon
+   - Implement DPC training with a single prediction horizon
 
-- [ ] **System Parameter Identification**
-  - [ ] Identify system parameter matrix with DPC/KAN
-  - [ ] End to end DPC
+2. Multi-Prediction Horizon
+   - Implement DPC training with multiple prediction horizons
+   - Comparative analysis of single vs. multiple prediction horizons:
+     - Compare training time
+     - Compare training sample requirements
+     - Assess robustness across horizons
+     - Evaluate the impact of hidden layer and neuron configurations on training performance
 
-- [ ] **Simulation and Experiment Alignment**
-  - [ ] Compensate for physical discrepancies between simulation and experimental setups
+3. System Parameter Identification
+   - Identify the system parameter matrix using DPC/KAN
 
-- [ ] **Parallel Task**
-  - [ ] Build datasets under varying system conditions:
-    - [ ] Changes in load
-    - [ ] Changes in reference signals
-    - [ ] Variations in system parameters
+4. Simulation and Experiment Alignment
+   - Compensate for physical discrepancies between simulation and experimental setups
+
+5. Parallel Task
+   - Build datasets under varying system conditions:
+     - Changes in load
+     - Changes in reference signals
+     - Variations in system parameters
