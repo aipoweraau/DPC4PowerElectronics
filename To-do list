@@ -22,3 +22,12 @@ To-Do List
      - Changes in load
      - Changes in reference signals
      - Variations in system parameters
+
+Feedback from Huai 12-12-2024
+"Cookbook" for DPC 
+   - improve the figure - show in separate subfigures the three activities: data collection, training, deployment/implementation in the target system
+   - show steps on how to design and implement, what performance metrics should be used 
+   - analyze the impact of parameters on the performance (network width and depth, number of data points used for training, data sampling rate, noise level)
+   - give guidelines: on which problems will it work, what is a limitation, what is the risk of implementing it in a system 
+   - do we need experimental data for it to work, what should be the ratio - can we find out what is missing in the simulation data so we can modify it to be more like experimental data
+
