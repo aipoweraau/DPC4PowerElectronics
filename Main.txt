@@ -1,0 +1,100 @@
+%% 
+clear; clc;
+load('Data10knew1.mat');  % 
+
+
+
+if_alpha = Data10knew1(:, 1);    % 
+if_beta = Data10knew1(:, 2);     % 
+vc_alpha = Data10knew1(:, 3);    % 
+vc_beta = Data10knew1(:, 4);     % 
+vref_alpha = Data10knew1(:, 5);  % 
+vref_beta = Data10knew1(:, 6);   % 
+R = Data10knew1(:, 7);           % 
+vref_alphaph = Data10knew1(:, 8);  
+vref_betaph = Data10knew1(:, 9);   
+vref_alphaph3 = Data10knew1(:, 10);  
+vref_betaph3 = Data10knew1(:, 11); 
+vref_alphaph4 = Data10knew1(:, 12);  
+vref_betaph4 = Data10knew1(:, 13);  
+vref_alphaph5 = Data10knew1(:, 14);  
+vref_betaph5 = Data10knew1(:, 15);   
+
+num=6000;
+
+
+data_in = [if_alpha(1:num) , if_beta(1:num),  vc_alpha(1:num),   vc_beta(1:num),  vref_alpha(1:num), vref_beta(1:num), R(1:num),vref_alphaph(1:num), vref_betaph(1:num), vref_alphaph3(1:num), vref_betaph3(1:num), vref_alphaph4(1:num), vref_betaph4(1:num), vref_alphaph5(1:num), vref_betaph5(1:num)]';
+
+
+% 
+if canUseGPU
+    data_in = gpuArray(data_in);
+end
+
+%% 
+layers = [
+    featureInputLayer(15)               % 
+    fullyConnectedLayer(16)             %
+    reluLayer                           
+    fullyConnectedLayer(16)             %
+    reluLayer                           
+                         
+    fullyConnectedLayer(10)             % 
+];
+
+net = dlnetwork(layers);  % 
+
+
+numEpochs = 10000;             % 训练轮数
+miniBatchSize = 256;          % Mini-batch size
+learningRate = 0.001;        % 初始学习率
+numBatches = floor(size(data_in, 2) / miniBatchSize);  % Number of batches per epoch
+
+
+
+parpool('local', 'IdleTimeout', 150);  
+
+
+
+trailingAvg = [];
+trailingAvgSq = [];
+
+
+tic;
+
+
+for epoch = 1:numEpochs
+  
+    shuffledInputs = data_in(:, randperm(size(data_in, 2)));
+
+    for i = 1:miniBatchSize:numBatches * miniBatchSize
+        batchEndIdx = min(i + miniBatchSize - 1, size(data_in, 2));
+        XBatch = shuffledInputs(:, i:batchEndIdx);
+
+       
+        [gradients, loss] = dlfeval(@modelGradients1, net, XBatch);
+
+     
+        currentLoss = extractdata(loss);
+        if currentLoss > 1000
+            learningRate = 0.001;
+        elseif currentLoss > 20
+            learningRate = 0.001;
+        else
+            learningRate = 0.001;
+        end
+
+     
+        [net, trailingAvg, trailingAvgSq] = adamupdate(net, gradients, trailingAvg, trailingAvgSq, epoch, learningRate);
+    end
+
+
+        disp("Epoch " + epoch + " Loss: " + currentLoss + " Learning Rate: " + learningRate);
+
+end
+
+
+toc;
+
+
+save('trainedNet_optimized.mat', 'net');

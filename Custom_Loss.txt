@@ -1,0 +1,92 @@
+%
+function loss = customLoss1(s_states, XBatch)
+ 
+    if_alpha       = XBatch(1, :);
+    if_beta        = XBatch(2, :);
+    vc_alpha       = XBatch(3, :);
+    vc_beta        = XBatch(4, :);
+    vref_alpha     = XBatch(5, :);
+    vref_beta      = XBatch(6, :);
+              R    = XBatch(7, :);
+    vref_alphaph   = XBatch(8, :);
+    vref_betaph    = XBatch(9, :);
+    vref_alphaph3  = XBatch(10, :);
+    vref_betaph3   = XBatch(11, :);
+    vref_alphaph4  = XBatch(12, :);
+    vref_betaph4   = XBatch(13, :);
+    vref_alphaph5  = XBatch(14, :);
+    vref_betaph5   = XBatch(15, :);
+%     i_load_imag    = XBatch(16, :);
+
+ 
+    v_ref_real = [vref_alpha; vref_alphaph; vref_alphaph3; vref_alphaph4; vref_alphaph5];  % (5, batchSize)
+    v_ref_imag = [vref_beta; vref_betaph; vref_betaph3; vref_betaph4; vref_betaph5];  % (5, batchSize)
+
+
+    v_meas_real = vc_alpha;
+    v_meas_imag = vc_beta;
+    i_meas_real = if_alpha;
+    i_meas_imag = if_beta;
+
+  
+    v_o_real = reshape(s_states(1:2:end, :), 5, []);  % (5, batchSize)
+    v_o_imag = reshape(s_states(2:2:end, :), 5, []);  % (5, batchSize)
+
+   
+    Adf = [0.896993414465221, -0.0190993472724508; 
+           6.39191488718020,  0.935192109010122];
+
+    Bdf = [0.0190993472724508,  0.0648078909898776; 
+           0.0648078909898777, -6.52153066915996];
+
+
+    C = 15e-6;  % Capacitance value (example)
+    wref = 2 * pi * 50;  % Reference frequency (example)
+
+  
+    ift_real = zeros(5, size(XBatch, 2), 'like', XBatch); 
+    ift_imag = zeros(5, size(XBatch, 2), 'like', XBatch); 
+    vc_real  = zeros(5, size(XBatch, 2), 'like', XBatch); 
+    vc_imag  = zeros(5, size(XBatch, 2), 'like', XBatch); 
+
+
+    R_safe = max(abs(R), 1e-6);  % 
+
+ 
+    i_load_real = vc_alpha ./ R_safe;  % 
+    i_load_imag = vc_beta ./ R_safe;
+
+ 
+    ift_real(1, :) = Adf(1,1) * i_meas_real + Adf(1,2) * v_meas_real + Bdf(1,1) * v_o_real(1, :) + Bdf(1,2) * i_load_real;
+    ift_imag(1, :) = Adf(1,1) * i_meas_imag + Adf(1,2) * v_meas_imag + Bdf(1,1) * v_o_imag(1, :) + Bdf(1,2) * i_load_imag;
+
+    vc_real(1, :) = Adf(2,1) * i_meas_real + Adf(2,2) * v_meas_real + Bdf(2,1) * v_o_real(1, :) + Bdf(2,2) * i_load_real;
+    vc_imag(1, :) = Adf(2,1) * i_meas_imag + Adf(2,2) * v_meas_imag + Bdf(2,1) * v_o_imag(1, :) + Bdf(2,2) * i_load_imag;
+
+    for k = 2:5
+        ift_real(k, :) = Adf(1,1) * ift_real(k-1, :) + Adf(1,2) * vc_real(k-1, :) + Bdf(1,1) * v_o_real(k, :) + Bdf(1,2) * i_load_real;
+        ift_imag(k, :) = Adf(1,1) * ift_imag(k-1, :) + Adf(1,2) * vc_imag(k-1, :) + Bdf(1,1) * v_o_imag(k, :) + Bdf(1,2) * i_load_imag;
+
+        vc_real(k, :) = Adf(2,1) * ift_real(k-1, :) + Adf(2,2) * vc_real(k-1, :) + Bdf(2,1) * v_o_real(k, :) + Bdf(2,2) * i_load_real;
+        vc_imag(k, :) = Adf(2,1) * ift_imag(k-1, :) + Adf(2,2) * vc_imag(k-1, :) + Bdf(2,1) * v_o_imag(k, :) + Bdf(2,2) * i_load_imag;
+    end
+
+
+    real_diff = (v_ref_real - vc_real).^2;  % Voltage real part error
+    imag_diff = (v_ref_imag - vc_imag).^2;  % Voltage imaginary part error
+
+ 
+    ift_real_diff = (ift_real - i_load_real + C * wref * v_ref_imag).^2;  % Current real part error
+    ift_imag_diff = (ift_imag - i_load_imag - C * wref * v_ref_real).^2;  % Current imaginary part error
+
+   
+    voltage_loss = sum(real_diff + imag_diff, 'all');  % Sum over all time steps and batches
+    current_loss = sum(ift_real_diff + ift_imag_diff, 'all');  % Sum over all time steps and batches
+
+ 
+    weight_voltage = 1.0;  % Weight for voltage error
+    weight_current = 1.0;  % Weight for current error
+    loss = weight_voltage * voltage_loss + weight_current * current_loss;
+
+
+end

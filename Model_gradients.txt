@@ -1,0 +1,40 @@
+function [gradients, loss] = modelGradients1(net, XBatch)
+
+    loss = 0;  % 
+    Int1; % 
+    numSamples = size(XBatch, 2);  % 
+
+   
+    for i = 1:numSamples
+       
+        if_alpha = XBatch(1, i);
+        if_beta = XBatch(2, i);
+        vc_alpha = XBatch(3, i);
+        vc_beta = XBatch(4, i);
+        vref_alpha = XBatch(5, i);
+        vref_beta = XBatch(6, i);
+        R = XBatch(7, i);
+        vref_alphaph = XBatch(8, i);
+        vref_betaph = XBatch(9, i);
+        vref_alphaph3 = XBatch(10, i);
+        vref_betaph3 = XBatch(11, i);
+        vref_alphaph4 = XBatch(12, i);
+        vref_betaph4 = XBatch(13, i);
+        vref_alphaph5 = XBatch(14, i);
+        vref_betaph5 = XBatch(15, i);
+
+        s_states = forward(net, dlarray(XBatch(:, i), 'CB'));
+
+        
+        loss_i = dlarray(customLoss1(s_states, if_alpha, if_beta, vc_alpha, vc_beta, vref_alpha, vref_beta, R, vref_alphaph, vref_betaph, vref_alphaph3, vref_betaph3, vref_alphaph4, vref_betaph4, vref_alphaph5, vref_betaph5));
+
+      
+        loss = loss + loss_i;
+    end
+
+   
+    loss = loss / numSamples;
+
+   
+    gradients = dlgradient(loss, net.Learnables);
+end
