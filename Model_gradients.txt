@@ -1,0 +1,20 @@
+function [gradients, loss] = modelGradients1(net, XBatch)
+
+    loss = dlarray(0);
+    numSamples = size(XBatch, 2);
+
+    for i = 1:numSamples
+
+        Xi = dlarray(XBatch(:, i), 'CB');
+
+        s_states = forward(net, Xi);
+
+        loss_i = customLoss1(s_states, Xi);
+
+        loss = loss + loss_i;
+    end
+
+    loss = loss / numSamples;
+
+    gradients = dlgradient(loss, net.Learnables);
+end
